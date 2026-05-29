@@ -1,0 +1,6 @@
+{
+  "name": "pft-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Vercel serverless wrapper around backend/src/app.js"
+}

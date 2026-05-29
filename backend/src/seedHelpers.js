@@ -22,15 +22,12 @@ const DEFAULT_INCOME = [
   { name: 'Lainnya', icon: '💵', color: '#64748b' }
 ];
 
-function seedDefaultCategoriesForUser(userId) {
-  const insert = db.prepare(
-    'INSERT INTO categories (id,user_id,name,icon,color,type,is_default,sort_order) VALUES (?,?,?,?,?,?,1,?)'
-  );
-  const tx = db.transaction(() => {
-    DEFAULT_EXPENSE.forEach((c, i) => insert.run(uuid(), userId, c.name, c.icon, c.color, 'expense', i));
-    DEFAULT_INCOME.forEach((c, i) => insert.run(uuid(), userId, c.name, c.icon, c.color, 'income', i));
-  });
-  tx();
+async function seedDefaultCategoriesForUser(userId) {
+  const sql = 'INSERT INTO categories (id,user_id,name,icon,color,type,is_default,sort_order) VALUES (?,?,?,?,?,?,1,?)';
+  const stmts = [];
+  DEFAULT_EXPENSE.forEach((c, i) => stmts.push({ sql, args: [uuid(), userId, c.name, c.icon, c.color, 'expense', i] }));
+  DEFAULT_INCOME.forEach((c, i) => stmts.push({ sql, args: [uuid(), userId, c.name, c.icon, c.color, 'income', i] }));
+  await db.client.batch(stmts, 'write');
 }
 
 module.exports = { seedDefaultCategoriesForUser, DEFAULT_EXPENSE, DEFAULT_INCOME };

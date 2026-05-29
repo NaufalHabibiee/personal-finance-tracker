@@ -16,62 +16,70 @@ function signToken(user) {
   );
 }
 
-router.post('/signup', (req, res) => {
-  const { email, password, full_name } = req.body || {};
-  const errs = validate({ email, password }, {
-    email: { required: true, type: 'string' },
-    password: { required: true, type: 'string' }
-  });
-  if (errs.length) return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: errs.join('; ') } });
-  if (password.length < 8) {
-    return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'Password min 8 chars' } });
-  }
+router.post('/signup', async (req, res, next) => {
+  try {
+    const { email, password, full_name } = req.body || {};
+    const errs = validate({ email, password }, {
+      email: { required: true, type: 'string' },
+      password: { required: true, type: 'string' }
+    });
+    if (errs.length) return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: errs.join('; ') } });
+    if (password.length < 8) {
+      return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'Password min 8 chars' } });
+    }
 
-  const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-  if (exists) {
-    return res.status(409).json({ error: { code: 'DUPLICATE_ENTRY', message: 'Email already registered' } });
-  }
-  const id = uuid();
-  const hash = bcrypt.hashSync(password, 10);
-  db.prepare('INSERT INTO users (id,email,password_hash,full_name) VALUES (?,?,?,?)')
-    .run(id, email, hash, full_name || null);
+    const exists = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    if (exists) {
+      return res.status(409).json({ error: { code: 'DUPLICATE_ENTRY', message: 'Email already registered' } });
+    }
+    const id = uuid();
+    const hash = bcrypt.hashSync(password, 10);
+    await db.prepare('INSERT INTO users (id,email,password_hash,full_name) VALUES (?,?,?,?)')
+      .run(id, email, hash, full_name || null);
 
-  seedDefaultCategoriesForUser(id);
+    await seedDefaultCategoriesForUser(id);
 
-  const user = db.prepare('SELECT id,email,full_name,currency,locale FROM users WHERE id = ?').get(id);
-  const token = signToken(user);
-  res.status(201).json({ user, token });
+    const user = await db.prepare('SELECT id,email,full_name,currency,locale FROM users WHERE id = ?').get(id);
+    const token = signToken(user);
+    res.status(201).json({ user, token });
+  } catch (e) { next(e); }
 });
 
-router.post('/signin', (req, res) => {
-  const { email, password } = req.body || {};
-  const errs = validate({ email, password }, {
-    email: { required: true, type: 'string' },
-    password: { required: true, type: 'string' }
-  });
-  if (errs.length) return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: errs.join('; ') } });
+router.post('/signin', async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
+    const errs = validate({ email, password }, {
+      email: { required: true, type: 'string' },
+      password: { required: true, type: 'string' }
+    });
+    if (errs.length) return res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: errs.join('; ') } });
 
-  const row = db.prepare('SELECT id,email,password_hash,full_name,currency,locale FROM users WHERE email = ?').get(email);
-  if (!row || !bcrypt.compareSync(password, row.password_hash)) {
-    return res.status(401).json({ error: { code: 'AUTH_REQUIRED', message: 'Invalid email or password' } });
-  }
-  const { password_hash, ...user } = row;
-  const token = signToken(user);
-  res.json({ user, token });
+    const row = await db.prepare('SELECT id,email,password_hash,full_name,currency,locale FROM users WHERE email = ?').get(email);
+    if (!row || !bcrypt.compareSync(password, row.password_hash)) {
+      return res.status(401).json({ error: { code: 'AUTH_REQUIRED', message: 'Invalid email or password' } });
+    }
+    const { password_hash, ...user } = row;
+    const token = signToken(user);
+    res.json({ user, token });
+  } catch (e) { next(e); }
 });
 
-router.get('/me', authRequired, (req, res) => {
-  const user = db.prepare('SELECT id,email,full_name,currency,locale,created_at FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
-  res.json({ user });
+router.get('/me', authRequired, async (req, res, next) => {
+  try {
+    const user = await db.prepare('SELECT id,email,full_name,currency,locale,created_at FROM users WHERE id = ?').get(req.user.id);
+    if (!user) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
+    res.json({ user });
+  } catch (e) { next(e); }
 });
 
-router.patch('/me', authRequired, (req, res) => {
-  const { full_name, currency, locale } = req.body || {};
-  db.prepare('UPDATE users SET full_name = COALESCE(?, full_name), currency = COALESCE(?, currency), locale = COALESCE(?, locale) WHERE id = ?')
-    .run(full_name ?? null, currency ?? null, locale ?? null, req.user.id);
-  const user = db.prepare('SELECT id,email,full_name,currency,locale FROM users WHERE id = ?').get(req.user.id);
-  res.json({ user });
+router.patch('/me', authRequired, async (req, res, next) => {
+  try {
+    const { full_name, currency, locale } = req.body || {};
+    await db.prepare('UPDATE users SET full_name = COALESCE(?, full_name), currency = COALESCE(?, currency), locale = COALESCE(?, locale) WHERE id = ?')
+      .run(full_name ?? null, currency ?? null, locale ?? null, req.user.id);
+    const user = await db.prepare('SELECT id,email,full_name,currency,locale FROM users WHERE id = ?').get(req.user.id);
+    res.json({ user });
+  } catch (e) { next(e); }
 });
 
 router.post('/signout', authRequired, (_req, res) => {
