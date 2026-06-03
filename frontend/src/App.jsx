@@ -9,6 +9,7 @@ import Transactions from './pages/Transactions.jsx';
 import Budgets from './pages/Budgets.jsx';
 import Reports from './pages/Reports.jsx';
 import Profile from './pages/Profile.jsx';
+import Chat from './pages/Chat.jsx';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         }>
           <Route index element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />
+          <Route path="chat" element={<Chat />} />
           <Route path="budgets" element={<Budgets />} />
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<Profile />} />

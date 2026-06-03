@@ -6,7 +6,7 @@ import AddTransactionSheet from './AddTransactionSheet.jsx';
 export default function Layout() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const location = useLocation();
-  const showFab = !['/profile'].includes(location.pathname);
+  const showFab = !['/profile', '/chat'].includes(location.pathname);
   return (
     <div className="app-shell">
       <Outlet context={{ openAdd: () => setSheetOpen(true) }} />

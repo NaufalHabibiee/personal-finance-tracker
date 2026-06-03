@@ -80,5 +80,8 @@ export const api = {
   reportComparison: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/reports/comparison${q ? '?' + q : ''}`);
-  }
+  },
+
+  // assistant chatbot
+  chat: (message) => request('/chat', { method: 'POST', body: JSON.stringify({ message }) })
 };

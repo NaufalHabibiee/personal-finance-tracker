@@ -23,6 +23,7 @@ function createApp() {
   app.use('/api/v1/transactions', require('./routes/transactions'));
   app.use('/api/v1/budgets', require('./routes/budgets'));
   app.use('/api/v1/reports', require('./routes/reports'));
+  app.use('/api/v1/chat', require('./routes/chat'));
 
   app.use((req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: `Route ${req.method} ${req.path} not found` } });

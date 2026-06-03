@@ -138,6 +138,28 @@ git push        # ← Vercel deploy otomatis ~1 menit kemudian
 
 ---
 
+## 🤖 Asisten AI (chatbot)
+
+Tab **Asisten** di navigasi bawah. Ketik transaksi pakai bahasa sehari-hari dan sistem otomatis mencatatnya — tanpa buka form.
+
+Contoh:
+| Kamu ketik | Hasil otomatis |
+|---|---|
+| `gaji 5 juta` | Pemasukan Rp 5.000.000 → kategori Gaji |
+| `beli kopi 25 ribu` | Pengeluaran Rp 25.000 → Makanan & Minuman |
+| `bayar listrik 150rb` | Pengeluaran Rp 150.000 → Tagihan & Utilitas |
+| `freelance project 2,5jt` | Pemasukan Rp 2.500.000 → Freelance |
+| `bensin 50k` | Pengeluaran Rp 50.000 → Transportasi |
+
+**Cara kerja:** parser lokal (rule-based) di `backend/src/nlp.js` — 100% gratis, tanpa API eksternal, jalan offline.
+- **Nominal:** paham `5 juta`/`5jt`, `25 ribu`/`25rb`/`25k`, `1,5jt`, `5.000.000`, `setengah juta`, dst.
+- **Tipe:** deteksi pemasukan vs pengeluaran dari kata kunci (gaji/bonus/jual → masuk; beli/bayar/jajan → keluar).
+- **Kategori:** dicocokkan otomatis ke kategori kamu (makan→Makanan, bensin→Transportasi, dll).
+
+Kalau nominal tidak ketemu, asisten akan minta diperjelas. Setiap transaksi yang dibuat punya tombol **Urungkan** untuk batal seketika.
+
+---
+
 ## Pakai aplikasi tanpa dummy data (alur recommended)
 
 Kalau kamu sudah deploy tapi mau sekalian bersihin demo data dari local dev:
@@ -232,6 +254,9 @@ Base: `/api/v1` · Auth: `Authorization: Bearer <jwt>`
 - `POST   /budgets` — `{ category_id, limit_amount, period_month, period_year }`
 - `PATCH  /budgets/:id`
 - `DELETE /budgets/:id`
+
+### Assistant (chatbot)
+- `POST /chat` — `{ message }` → `{ reply, created, transaction? }` — parse bahasa natural & auto-buat transaksi
 
 ### Reports
 - `GET /reports/overview?month&year`
