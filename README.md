@@ -160,6 +160,29 @@ Kalau nominal tidak ketemu, asisten akan minta diperjelas. Setiap transaksi yang
 
 ---
 
+## 📊 Export Laporan ke Excel (.xlsx)
+
+Di halaman **Laporan**, tekan tombol **⬇️ Excel** (pojok kanan atas). File `.xlsx` langsung ter-download berisi 3 sheet:
+- **Transaksi** — semua transaksi (tanggal, tipe, kategori, nominal, catatan) + baris TOTAL & SALDO
+- **Ringkasan Bulanan** — pemasukan/pengeluaran/net per bulan
+- **Per Kategori** — total & jumlah transaksi tiap kategori
+
+Dibuat di sisi browser (SheetJS, di-load saat dibutuhkan saja) — gratis, tanpa server tambahan. Nominal tersimpan sebagai angka asli sehingga bisa langsung dijumlah/diolah di Excel.
+
+---
+
+## 🧾 Scan Struk → otomatis jadi pengeluaran
+
+Tekan tombol kamera **📷** (di atas tombol +). Foto struk belanja → teks dibaca otomatis (OCR) → **nominal, tanggal, dan kategori terisi otomatis** ke form pengeluaran, tinggal cek & **Simpan**.
+
+- **OCR:** Tesseract.js, jalan **di browser** — 100% gratis, tanpa API berbayar (mesin OCR di-load dari CDN saat pertama dipakai).
+- **Deteksi:** total (mengabaikan baris "tunai"/"kembali"), tanggal (dd/mm/yyyy), dan kategori dari nama toko (Indomaret→Belanja, SPBU→Transportasi, Apotek→Kesehatan, resto→Makanan, dll).
+- **Aman:** hasil scan selalu **dikonfirmasi dulu** sebelum disimpan — kalau OCR salah baca, kamu bisa koreksi langsung.
+
+> Tips akurasi: foto lurus, terang, dan pastikan baris **Total** terlihat jelas.
+
+---
+
 ## Pakai aplikasi tanpa dummy data (alur recommended)
 
 Kalau kamu sudah deploy tapi mau sekalian bersihin demo data dari local dev:

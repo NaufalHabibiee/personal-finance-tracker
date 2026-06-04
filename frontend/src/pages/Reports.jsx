@@ -5,9 +5,27 @@ import {
 } from 'recharts';
 import { api } from '../api';
 import { formatIDR, formatShort, monthLabel, formatDateID } from '../utils';
+import { exportFinanceReport } from '../exportExcel';
+import { useToast } from '../components/Toast.jsx';
 
 export default function Reports() {
   const now = new Date();
+  const toast = useToast();
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const { count } = await exportFinanceReport();
+      toast.show(`✅ ${count} transaksi diekspor ke Excel`);
+    } catch (err) {
+      toast.show(err.code === 'EMPTY' ? err.message : 'Gagal ekspor: ' + err.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
   const [trendMonths, setTrendMonths] = useState(6);
@@ -46,7 +64,12 @@ export default function Reports() {
 
   return (
     <>
-      <div className="topbar"><h1>Laporan</h1></div>
+      <div className="topbar">
+        <h1>Laporan</h1>
+        <button className="btn btn-sm" onClick={handleExport} disabled={exporting}>
+          {exporting ? <span className="spinner" /> : '⬇️ Excel'}
+        </button>
+      </div>
       <div className="page">
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <select className="select" value={month} onChange={e => setMonth(parseInt(e.target.value))}>

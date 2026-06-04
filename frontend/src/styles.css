@@ -133,6 +133,64 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   .fab { transform: translateX(calc(min(50vw, 360px) - 80px)); }
 }
 
+/* Secondary FAB: receipt scanner (sits above the main +) */
+.fab-camera {
+  position: fixed;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(calc(min(50vw, 240px) - 80px));
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  font-size: 22px;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 768px) {
+  .fab-camera { transform: translateX(calc(min(50vw, 360px) - 80px)); }
+}
+
+/* ---------- Receipt OCR scanner ---------- */
+.ocr-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ocr-pick:hover { border-color: var(--primary); background: var(--bg); }
+.ocr-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #000;
+}
+.ocr-progress {
+  height: 8px;
+  background: var(--border);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin: 14px 0 10px;
+}
+.ocr-progress > div {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.25s ease;
+}
+
 /* ---------- Bottom Nav ---------- */
 .bottom-nav {
   position: fixed;

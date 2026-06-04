@@ -3,25 +3,37 @@ import { api } from '../api';
 import { formatIDR, todayISO, formatDateID } from '../utils';
 import { useToast } from './Toast.jsx';
 
-export default function AddTransactionSheet({ onClose, onSaved, initial }) {
+export default function AddTransactionSheet({ onClose, onSaved, initial, prefill }) {
   const isEdit = !!initial;
-  const [type, setType] = useState(initial?.type || 'expense');
-  const [amount, setAmount] = useState(initial?.amount ? String(initial.amount) : '');
-  const [categoryId, setCategoryId] = useState(initial?.category?.id || '');
-  const [date, setDate] = useState(initial?.transaction_date || todayISO());
-  const [note, setNote] = useState(initial?.note || '');
+  const src = initial || prefill || {};
+  const [type, setType] = useState(src.type || 'expense');
+  const [amount, setAmount] = useState(src.amount ? String(src.amount) : '');
+  const [categoryId, setCategoryId] = useState(src.category?.id || src.category_id || '');
+  const [date, setDate] = useState(src.transaction_date || src.date || todayISO());
+  const [note, setNote] = useState(src.note || '');
   const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
-    api.listCategories().then(r => setCategories(r.data)).catch(() => {});
+    api.listCategories().then(r => {
+      setCategories(r.data);
+      // Resolve a prefilled category name (from receipt scan) → real category id.
+      if (!isEdit && prefill?.categoryName) {
+        const want = prefill.categoryName.toLowerCase();
+        const wantType = prefill.type || 'expense';
+        const match = r.data.find(c => c.name.toLowerCase() === want && (c.type === wantType || c.type === 'both'));
+        if (match) setCategoryId(match.id);
+      }
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
+  function switchType(next) {
+    setType(next);
     if (!isEdit) setCategoryId('');
-  }, [type, isEdit]);
+  }
 
   const filtered = categories.filter(c => c.type === type || c.type === 'both');
 
@@ -55,12 +67,19 @@ export default function AddTransactionSheet({ onClose, onSaved, initial }) {
       <div className="sheet-backdrop" onClick={onClose} />
       <div className="sheet" onClick={e => e.stopPropagation()}>
         <div className="grab" />
-        <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>{isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'}</h3>
+        <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>
+          {isEdit ? 'Edit Transaksi' : prefill ? '🧾 Konfirmasi dari Struk' : 'Tambah Transaksi'}
+        </h3>
+        {prefill && (
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -8, marginBottom: 12 }}>
+            Hasil scan otomatis — periksa & koreksi bila perlu, lalu Simpan.
+          </div>
+        )}
         <div className="toggle-group">
-          <button type="button" className={`toggle-btn ${type === 'expense' ? 'active expense' : ''}`} onClick={() => setType('expense')}>
+          <button type="button" className={`toggle-btn ${type === 'expense' ? 'active expense' : ''}`} onClick={() => switchType('expense')}>
             ↓ Pengeluaran
           </button>
-          <button type="button" className={`toggle-btn ${type === 'income' ? 'active income' : ''}`} onClick={() => setType('income')}>
+          <button type="button" className={`toggle-btn ${type === 'income' ? 'active income' : ''}`} onClick={() => switchType('income')}>
             ↑ Pemasukan
           </button>
         </div>
